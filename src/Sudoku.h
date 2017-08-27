@@ -11,7 +11,7 @@
 #include "imageprocessor.h"
 
 class Sudoku {
-	void getBoard();
+
 public:
 	Board board;
 	Sudoku();

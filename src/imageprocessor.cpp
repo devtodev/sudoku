@@ -135,6 +135,18 @@ Mat getBoard(Mat src, bool debug)
 {
 	Mat rst = getImageCannyBorders(src);
 	vector<Point> borders = findBordersPoints(rst, debug);
+
+	Ptr<cv::text::OCRTesseract> ocr =
+	    cv::text::OCRTesseract::create(NULL /*datapath*/, "eng" /*lang*/, "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789" /*whitelist*/, 2 /*oem*/, 10 /*psmode*/);
+
+	string output;
+	vector<Rect>   boxes;
+	vector<string> words;
+	vector<float>  confidences;
+	ocr->run(src, output, &boxes, &words, &confidences, cv::text::OCR_LEVEL_WORD);
+
+
+
 	return fourPointsTransform(src, borders);
 }
 

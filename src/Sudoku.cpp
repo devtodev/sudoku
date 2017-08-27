@@ -28,12 +28,6 @@ Sudoku::Sudoku() {
 Sudoku::~Sudoku() {
 }
 
-void Sudoku::getBoard() {
-	//	Mat result = getImageCannyBorders(source);
-	//	vector<Point> borders = findBordersPoints(result, debug);
-	//	return fourPointsTransform(src, borders);
-}
-
 int Sudoku::show() {
 	char* window_name = "Sudoku";
 	namedWindow( window_name, CV_WINDOW_AUTOSIZE );
