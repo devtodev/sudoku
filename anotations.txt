@@ -1,0 +1,26 @@
+Category learning, parallel rule-based systems, exemplar-based induction, apportionment of credit,
+fuzzy-match rule activation.
+
+categorization
+
+	Humans acquire this ability after many years of observing a wide-range of related examples. 
+	skill based primarily on memory for past experiences rather than on logical deduction or symbolic reasoning 
+
+	Associating one or more action with each of the categories.
+	The problem solver has a large repertoire of well-practiced action routines that can be selected and applied 
+	in a way that is appropriate for the initial categorization decision.
+
+
+	General categorization rules within a supervised learning paradigm.
+
+
+	These systems create a list of fixedlength condition-action rules that applie in parallel representing the
+	presence or absence of specific features in the current enviroment.
+
+	The three big parts of the systems are:
+
+	1) A performance algorithm that comparing and activating rules
+	2) A reinforcement algorithm that modifies the strength of each rule on basis of the "fitness" in the current enviroment
+	3) A rule creation algorithm that generalizes examples or combines current rules to produce new ones
+
+	 
