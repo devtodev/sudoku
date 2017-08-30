@@ -3,13 +3,17 @@
 ## OpenCV headers and libraries
 
 **Project–>Properties->C/C++ Build->Settings->Tool Settings->GCC C++ Compiler->Includes**
-Include Paths (-l): 
-* /usr/local/include/opencv
-* /usr/lib64
+
+* Include Paths (-l): 
+** /usr/local/include/opencv
+** /usr/lib64
 
 **Project–>Properties->C/C++ Build->Settings->Tool Settings->GCC C++ Linker->Libraries**
-	Library search path (-l): /usr/local/lib
-	Libraries (-l): opencv_core opencv_imgcodecs opencv_imgcodecs opencv_highgui opencv_text
+
+* Library search path (-l): 
+** /usr/local/lib
+* Libraries (-l):
+** opencv_core opencv_imgcodecs opencv_imgcodecs opencv_highgui opencv_text
 
 ## Extra libraries
 
