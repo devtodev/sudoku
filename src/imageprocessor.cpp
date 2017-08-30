@@ -11,19 +11,40 @@ using namespace std;
 #include "opencv2/imgproc/imgproc.hpp"
 #include "opencv2/text/ocr.hpp"
 #include "opencv2/highgui/highgui.hpp"
+#include "opencv2/text.hpp"
+#include "opencv2/core/utility.hpp"
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
 
 using namespace cv;
+using namespace cv::text;
 
 Mat getImageCannyBorders( Mat src);
 vector<Point> findBordersPoints(Mat src, bool debug = false);
 Mat fourPointsTransform(Mat src, vector<Point>);
 vector<Point> orderPoints(vector<Point> points);
 
+int image2int(Mat image)
+{
+    string vocabulary = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"; // must have the same order as the classifier output classes
+
+    Ptr<OCRHMMDecoder::ClassifierCallback> ocr = loadOCRHMMClassifierCNN("/home/karl/workspace/opencv_contrib/modules/text/samples/OCRBeamSearch_CNN_model_data.xml.gz");
+
+    vector<int> out_classes;
+    vector<double> out_confidences;
+
+    ocr->eval(image, out_classes, out_confidences);
+
+  /*  cout << "OCR output = \"" << vocabulary[out_classes[0]] << "\" with confidence "
+         << out_confidences[0] << ". Evaluated in "
+         << ((double)getTickCount() - t_r)*1000/getTickFrequency() << " ms." << endl << endl;
+*/
+    return ((int) vocabulary[out_classes[0]] - '0');
+}
+
 /** @function detectDigits */
-std::vector<cv::Rect> detectDigits(cv::Mat img)
+vector<cv::Rect> detectDigits(cv::Mat img)
 {
 	vector<Rect> boundRect;
     Mat rgb;
@@ -47,8 +68,13 @@ std::vector<cv::Rect> detectDigits(cv::Mat img)
     vector<Vec4i> hierarchy;
     findContours(bw, contours, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
 
-    for(int idx = 0; idx >= 0; idx = hierarchy[idx][0]){
+    for(int idx = 0; idx >= 0; idx = hierarchy[idx][0])
+	{
     	boundRect.push_back(boundingRect(contours[idx]));
+		boundRect[boundRect.size()-1].x = boundRect[boundRect.size()-1].x * 2;
+		boundRect[boundRect.size()-1].y = boundRect[boundRect.size()-1].y * 2;
+		boundRect[boundRect.size()-1].width = boundRect[boundRect.size()-1].width * 2;
+		boundRect[boundRect.size()-1].height = boundRect[boundRect.size()-1].height * 2;
     }
     return boundRect;
 }
@@ -168,35 +194,6 @@ Mat getBoard(Mat src, bool debug)
 	Mat rst = getImageCannyBorders(src);
 	vector<Point> borders = findBordersPoints(rst, false);
 
-	Ptr<cv::text::OCRTesseract> ocr =
-	    cv::text::OCRTesseract::create("/usr/local/share/tessdata/" /*datapath*/, "eng" /*lang*/, "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789" /*whitelist*/, 2 /*oem*/, 10 /*psmode*/);
-
-	string output;
-	vector<Rect>   boxes = detectDigits(src);
-
-	// draw digits
-	if (debug)
-	{
-		for (int i = 0; i < boxes.size(); i++)
-		{
-			rectangle(src,Point(boxes[i].x*2, boxes[i].y*2),Point(2*(boxes[i].x+boxes[i].width), 2*(boxes[i].y+boxes[i].height)),CV_RGB(127,127,127),2,0);
-
-			char* window_name = "Sudoku";
-			namedWindow( window_name, CV_WINDOW_AUTOSIZE );
-			imshow( window_name, src);
-		}
-		waitKey(0);
-	}
-	// identify digits
-	vector<string> words;
-	vector<float>  confidences;
-	ocr->run(src, output, &boxes, &words, &confidences, cv::text::OCR_LEVEL_WORD);
-
-	if (words.size() > 0)
-	{
-		waitKey(0);
-	}
-
 	return fourPointsTransform(src, borders);
 }
 
@@ -217,22 +214,25 @@ void drawLine(Vec2f line, Mat &img, Scalar rgb = CV_RGB(0,0,255))
 
 }
 
-
 Board image2board(char *image)
 {
 	Board board;
 	for(int x=0;x<9;x++)
 		 for(int y=0;y<9;y++)
 			 board.node[x][y] = 0;
+
 	/// Load an image
 	Mat src = imread( image );
 	if( !src.data )
 		return board;
 
-	// Process image
+	// Identify numbers
 	Mat imgboard = getBoard(src, false);
-	getBoard(imgboard, true);
-	// TODO: continue here...
+	vector<Rect> numbers = detectDigits(imgboard);
+	// Convert image to integer values
+	Mat digit = imgboard(numbers[0]);
+	int number = image2int(digit);
+	// TODO: Iterate each number, identify their position and fill the board to return
 
 	return board;
 }
