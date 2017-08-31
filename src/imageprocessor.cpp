@@ -16,6 +16,7 @@ using namespace std;
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <iostream>
 
 using namespace cv;
 using namespace cv::text;
@@ -70,11 +71,17 @@ vector<cv::Rect> detectDigits(cv::Mat img)
 
     for(int idx = 0; idx >= 0; idx = hierarchy[idx][0])
 	{
-    	boundRect.push_back(boundingRect(contours[idx]));
-		boundRect[boundRect.size()-1].x = boundRect[boundRect.size()-1].x * 2;
-		boundRect[boundRect.size()-1].y = boundRect[boundRect.size()-1].y * 2;
-		boundRect[boundRect.size()-1].width = boundRect[boundRect.size()-1].width * 2;
-		boundRect[boundRect.size()-1].height = boundRect[boundRect.size()-1].height * 2;
+    	Rect cursor = boundingRect(contours[idx]);
+    	if (((cursor.height < bw.rows / 9)) && ((cursor.width < bw.cols / 9))) // <-- avoid adding things bigger than a square
+    	{
+    		// add number to the result
+			boundRect.push_back(cursor);
+			// recover the original size
+			boundRect[boundRect.size()-1].x = boundRect[boundRect.size()-1].x * 2;
+			boundRect[boundRect.size()-1].y = boundRect[boundRect.size()-1].y * 2;
+			boundRect[boundRect.size()-1].width = boundRect[boundRect.size()-1].width * 2;
+			boundRect[boundRect.size()-1].height = boundRect[boundRect.size()-1].height * 2;
+    	}
     }
     return boundRect;
 }
@@ -193,8 +200,15 @@ Mat getBoard(Mat src, bool debug)
 {
 	Mat rst = getImageCannyBorders(src);
 	vector<Point> borders = findBordersPoints(rst, false);
-
-	return fourPointsTransform(src, borders);
+	Mat result = fourPointsTransform(src, borders);
+	if (debug)
+	{
+		char* window_name = "Sudoku";
+		namedWindow( window_name, CV_WINDOW_AUTOSIZE );
+		imshow( window_name, result);
+		waitKey(0);
+	}
+	return result;
 }
 
 void drawLine(Vec2f line, Mat &img, Scalar rgb = CV_RGB(0,0,255))
@@ -225,14 +239,29 @@ Board image2board(char *image)
 	Mat src = imread( image );
 	if( !src.data )
 		return board;
-
-	// Identify numbers
+	// Identify board
 	Mat imgboard = getBoard(src, false);
-	vector<Rect> numbers = detectDigits(imgboard);
-	// Convert image to integer values
-	Mat digit = imgboard(numbers[0]);
-	int number = image2int(digit);
-	// TODO: Iterate each number, identify their position and fill the board to return
-
+	// Identify numbers
+	vector<Rect> boxNumber = detectDigits(imgboard);
+	// Iterate each number, identifying their position and fill the board to return
+	for (unsigned int i = 0; i < boxNumber.size(); i++)
+	{
+		Mat digit = imgboard(boxNumber[i]);
+		int number = image2int(digit);
+		int x = boxNumber[i].x / (imgboard.cols / 9);
+		int y = boxNumber[i].y / (imgboard.rows / 9);
+		board.node[y][x] = number;
+	}
+	if (debug)
+	{
+		for (int x = 0; x < 9; x++)
+		{
+			for (int y = 0; y < 9; y++)
+			{
+				cout << board.node[x][y] << " ";
+			}
+			cout << "\n";
+		}
+	}
 	return board;
 }
