@@ -11,7 +11,8 @@
 #include "imageprocessor.h"
 
 class Sudoku {
-
+	void getOptionsOf(Board board, int x, int y, int result[9]);
+	int choiseOptionsAt(int boardOptions[9][9][9], int x, int y);
 public:
 	Board board;
 	Sudoku();

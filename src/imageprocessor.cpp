@@ -211,6 +211,18 @@ Mat getBoard(Mat src, bool debug)
 	return result;
 }
 
+void printBoard(int node[9][9]) {
+	cout << "\n";
+	for (int x = 0; x < 9; x++)
+	{
+		for (int y = 0; y < 9; y++)
+		{
+			cout << node[x][y] << " ";
+		}
+		cout << "\n";
+	}
+}
+
 void drawLine(Vec2f line, Mat &img, Scalar rgb = CV_RGB(0,0,255))
 {
     if(line[1]!=0)
@@ -228,13 +240,13 @@ void drawLine(Vec2f line, Mat &img, Scalar rgb = CV_RGB(0,0,255))
 
 }
 
-Board image2board(char *image)
+Board image2board(char *image, bool debug = false)
 {
 	Board board;
+	// initialize board
 	for(int x=0;x<9;x++)
 		 for(int y=0;y<9;y++)
 			 board.node[x][y] = 0;
-
 	/// Load an image
 	Mat src = imread( image );
 	if( !src.data )
@@ -252,16 +264,6 @@ Board image2board(char *image)
 		int y = boxNumber[i].y / (imgboard.rows / 9);
 		board.node[y][x] = number;
 	}
-	if (debug)
-	{
-		for (int x = 0; x < 9; x++)
-		{
-			for (int y = 0; y < 9; y++)
-			{
-				cout << board.node[x][y] << " ";
-			}
-			cout << "\n";
-		}
-	}
+	if (debug) printBoard(board.node);
 	return board;
 }
