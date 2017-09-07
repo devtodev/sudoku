@@ -22,10 +22,56 @@ Mat result;
 bool debug = 0;
 
 int Sudoku::choiseOptionsAt(int boardOptions[9][9][9], int x, int y) {
+	int buff[9] = {1,2,3,4,5,6,7,8,9}, cursor;
+	for (int i = 0; i < 9; i++)
+	{
+		// iterate cols
+		if (i != x)
+		{
+			cursor = 0;
+			while (boardOptions[i][y][cursor] > 0) {
+				buff[boardOptions[i][y][cursor] - 1] = -1;
+				cursor++;
+			}
+		}
+		// iterate cols
+		if (i != y)
+		{
+			cursor = 0;
+			while (boardOptions[x][i][cursor] > 0) {
+				buff[boardOptions[x][i][cursor] - 1] = -1;
+				cursor++;
+			}
+		}
+	}
+	int trix = x / 3; // get small square position x
+	int triy = y / 3; // get small square position y
+	// iterate each element of the small squere
+	for (int tx = trix * 3; tx < trix * 3 + 3; tx++)
+		for (int ty = triy * 3; ty < triy * 3 + 3; ty++)
+		{
+			if ((tx != x) && (ty != y))
+			{
+				cursor = 0;
+				while (boardOptions[tx][ty][cursor] > 0) {
+					buff[boardOptions[tx][ty][cursor] - 1] = -1;
+					cursor++;
+				}
+			}
+		}
+	// search response
+	for (int cursor : buff)
+	{
+		if (cursor > 0)
+		{
+			return cursor;
+		}
+	}
+
 	return -1;
 }
 
-void Sudoku::getOptionsOf(Board board, int x, int y, int result[9]) {
+void Sudoku::getOptionsFor(Board board, int x, int y, int result[9]) {
 	int temp[] = {1,2,3,4,5,6,7,8,9}; // <-- all the possibilities
 	for (int i = 0; i < 9; i++)
 	{
@@ -77,7 +123,7 @@ int Sudoku::show() {
 }
 
 int Sudoku::resolve(char *img) {
-	board = image2board(img, true);
+	board = image2board(img, false);
 	// fill the options per node
 	int options[9][9][9];
 	int vec[9];
@@ -86,7 +132,7 @@ int Sudoku::resolve(char *img) {
 		{
 			if (board.node[x][y] == 0)
 			{
-				getOptionsOf(board, x, y, vec);
+				getOptionsFor(board, x, y, vec);
 				for (int cursor = 0; cursor < 9; cursor++)
 				{
 					options[x][y][cursor] = vec[cursor];
@@ -100,9 +146,9 @@ int Sudoku::resolve(char *img) {
 	for (int x = 0; x < 9; x++)
 		for (int y = 0; y < 9; y++)
 		{
-			if (board.node[x][y] == 0)
+			if ((board.node[x][y] == 0) && (options[x][y][1] == -1) && (options[x][y][0] > 0)) // means have an only option
 			{
-				board.node[x][y] = choiseOptionsAt(options, x, y);
+				board.node[x][y] = options[x][y][0];
 			}
 		}
 	printBoard(board.node);
