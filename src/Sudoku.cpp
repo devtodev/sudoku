@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
-
+#include <iostream>
 
 using namespace cv;
 using namespace std;
@@ -71,6 +71,37 @@ int Sudoku::choiseOptionsAt(int boardOptions[9][9][9], int x, int y) {
 	return -1;
 }
 
+bool Sudoku::numberInBox(int node[9][9], int number, int posX, int posY) {
+	int trix = posX / 3; // get small square position x
+	int triy = posY / 3; // get small square position y
+	// iterate each element of the small squere
+	for (int x = trix * 3; x < trix * 3 + 3; x++)
+		for (int y = triy * 3; y < triy * 3 + 3; y++)
+		{
+			if ( !((posX == x) && (posY == y))
+			    && (node[x][y] == number))
+			{
+				return true;
+			}
+		}
+
+	return false;
+}
+
+bool Sudoku::numberInCrux(int node[9][9], int number, int posX, int posY) {
+	for (int x = 0; x < 9; x++)
+	{
+		if ((x != posX) && (node[x][posY] == number))
+			return true;
+	}
+	for (int y = 0; y < 9; y++)
+	{
+		if ((y != posY) && (node[posX][y] == number))
+			return true;
+	}
+	return false;
+}
+
 void Sudoku::getOptionsFor(Board board, int x, int y, int result[9]) {
 	int temp[] = {1,2,3,4,5,6,7,8,9}; // <-- all the possibilities
 	for (int i = 0; i < 9; i++)
@@ -122,35 +153,63 @@ int Sudoku::show() {
 	return 0;
 }
 
-int Sudoku::resolve(char *img) {
-	board = image2board(img, false);
+int Sudoku::process()
+{
+	int empty = 0;
 	// fill the options per node
 	int options[9][9][9];
-	int vec[9];
-	for (int x = 0; x < 9; x++) {
-		for (int y = 0; y < 9; y++)
-		{
-			if (board.node[x][y] == 0)
+	// int vec[9];
+	for(int number = 1; number < 10; number++) {
+		// make the option matrix
+		for (int x = 0; x < 9; x++)
+			for (int y = 0; y < 9; y++)
 			{
-				getOptionsFor(board, x, y, vec);
-				for (int cursor = 0; cursor < 9; cursor++)
+				/* if (board.node[x][y] == number)
 				{
-					options[x][y][cursor] = vec[cursor];
+					options[number-1][x][y] = number;
+				} else */
+				if ((board.node[x][y] == 0) && (!numberInBox(board.node, number, x, y) && (!numberInCrux(board.node, number, x, y))))
+				{
+					options[number-1][x][y] = number;
+				} else {
+					options[number-1][x][y] = 0;
 				}
-			} else {
-				options[x][y][0] = board.node[x][y];
-				options[x][y][1] = -1;
 			}
+	}
+	// first filter to the matrix
+	for(int number = 1; number < 10; number++) {
+		for (int x = 0; x < 9; x++)
+			for (int y = 0; y < 9; y++)
+			{
+				if (options[number-1][x][y] != 0)
+				{
+					// check if this number is the unique in the option box
+					if (!numberInBox(options[number-1], number, x, y))
+					{
+						board.node[x][y] = number;
+					} else {
+						empty++;
+					}
+				}
+			}
+	}
+
+	return empty;
+}
+
+int Sudoku::resolve(char *img) {
+	bool debug = false;
+	board = image2board(img, debug);
+	int emptySpaces = 9;
+	while (emptySpaces > 0)
+	{
+		emptySpaces = process();
+		if (debug)
+		{
+			printBoard(board.node);
+			cout << "\n" << emptySpaces << "\n";
 		}
 	}
-	for (int x = 0; x < 9; x++)
-		for (int y = 0; y < 9; y++)
-		{
-			if ((board.node[x][y] == 0) && (options[x][y][1] == -1) && (options[x][y][0] > 0)) // means have an only option
-			{
-				board.node[x][y] = options[x][y][0];
-			}
-		}
 	printBoard(board.node);
 	return 0;
 }

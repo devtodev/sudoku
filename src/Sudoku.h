@@ -11,6 +11,10 @@
 #include "imageprocessor.h"
 
 class Sudoku {
+	bool numberInCrux(int node[9][9], int number, int posX, int posY);
+	bool numberInBox(int node[9][9], int number, int posX, int posY);
+	int process();
+
 	void getOptionsFor(Board board, int x, int y, int result[9]);
 	int choiseOptionsAt(int boardOptions[9][9][9], int x, int y);
 public:
